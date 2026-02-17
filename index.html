@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Romantic Gemini 3 🌹</title>
+    <style>
+        :root {
+            --pink-soft: #ffafbd;
+            --rose-gradient: linear-gradient(to right, #ffafbd, #ffc3a0);
+            --dark-romance: #1a0b10;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--dark-romance);
+            color: #fff;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        /* Layar Login & Container Utama */
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            text-align: center;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 175, 189, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        h2 { color: var(--pink-soft); margin-bottom: 20px; font-weight: 300; letter-spacing: 2px; }
+        input, textarea {
+            width: 100%;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 12px;
+            border: 1px solid #444;
+            background: rgba(0,0,0,0.3);
+            color: white;
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.3s;
+        }
+        input:focus { border-color: var(--pink-soft); }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: var(--rose-gradient);
+            color: #1a0b10;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+        button:hover { transform: scale(1.02); opacity: 0.9; }
+
+        /* Tampilan Chat (Hidden by default) */
+        #chatInterface { display: none; }
+        #output {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            text-align: left;
+            line-height: 1.6;
+            border-left: 3px solid var(--pink-soft);
+            white-space: pre-wrap;
+        }
+        .subtitle { color: #888; font-size: 14px; margin-bottom: 20px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="loginScreen" class="card">
+            <h2>Welcome🌹</h2>
+            <p class="subtitle">masukkan password</p>
+            <input type="password" id="apiKey" placeholder="Masukkan password yang sudah diberi">
+            <button id="startBtn">Masuk</button>
+        </div>
+
+        <div id="chatInterface" class="card">
+            <h2>ai pribadi</h2>
+            <p class="subtitle">Tanya apa aja, gue dengerin kok...</p>
+            <textarea id="prompt" placeholder="Ketik pesan cintamu..."></textarea>
+            <button id="sendBtn">Kirim Pesan</button>
+            <div id="output">Belum ada obrolan...</div>
+        </div>
+    </div>
+
+    <script>
+        const loginScreen = document.getElementById('loginScreen');
+        const chatInterface = document.getElementById('chatInterface');
+        const apiKeyInput = document.getElementById('apiKey');
+        const startBtn = document.getElementById('startBtn');
+        
+        const promptInput = document.getElementById('prompt');
+        const sendBtn = document.getElementById('sendBtn');
+        const output = document.getElementById('output');
+
+        let MY_API_KEY = "";
+
+        // Fungsi Masuk
+        startBtn.onclick = () => {
+            if(apiKeyInput.value.trim() === "") return alert("Isi API Key-nya dulu sayang!");
+            MY_API_KEY = apiKeyInput.value.trim();
+            loginScreen.style.display = 'none';
+            chatInterface.style.display = 'block';
+        };
+
+        sendBtn.onclick = async () => {
+            const userText = promptInput.value.trim();
+            if(!userText) return;
+
+            sendBtn.disabled = true;
+            output.innerText = "Lagi ngetik...";
+
+            
+            const systemPrompt = `Gaya bicara lo: Santai, asik, romantis tipis-tipis, pake bahasa gaul Jakarta/Indonesia yaa, tanya dulu gue mau di panggil es atau ndutt, jangan asal manggil gue, ini ai khusus orang yang namanya tita, dan yap ai ini d buat oleh ameen raja iblis. maafin aminn yqq kalo jarang ada waktuuuu: `;
+            
+            const fullPrompt = systemPrompt + userText;
+
+            const URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${MY_API_KEY}`;
+
+            try {
+                const response = await fetch(URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: fullPrompt }]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                
+                if(data.error) {
+                    output.innerText = "Waduh ada masalah: " + data.error.message;
+                } else {
+                    const aiText = data.candidates[0].content.parts[0].text;
+                    output.innerText = aiText;
+                    promptInput.value = "";
+                }
+            } catch (err) {
+                output.innerText = "Error Fatal: " + err.message;
+            } finally {
+                sendBtn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
